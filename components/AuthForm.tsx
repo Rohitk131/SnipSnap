@@ -70,7 +70,7 @@ export default function AuthForm() {
 
   return (
     <div className="relative min-h-[400px] w-[400px] bg-gray-900 text-slate-100 flex items-center justify-center">
-      {/* Toast Notification */}
+   
       {showToast && (
         <div className="absolute top-4 left-0 right-0 mx-auto w-[90%] z-50 animate-fade-in">
           <Alert className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
@@ -83,7 +83,7 @@ export default function AuthForm() {
       )}
 
       <div className="w-80 p-6 backdrop-blur-sm bg-slate-900/50 rounded-xl border border-slate-600/50 shadow-2xl bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBvcGFjaXR5PSIwLjEiPgo8ZmlsdGVyIGlkPSJub2lzZSIgeD0iMCIgeT0iMCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSI+CiAgPGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuNiIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPgo8L2ZpbHRlcj4KPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI25vaXNlKSIvPgo8L3N2Zz4=')]">
-        {/* Rest of your existing JSX */}
+
         <h2 className="text-2xl font-bold text-center mb-8">
           {isLoading ? (
             "Loading..."
