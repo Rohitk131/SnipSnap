@@ -69,7 +69,6 @@ export default function Dashboard({
   return (
     <div className="min-h-screen w-full max-w-4xl mx-auto bg-gray-900 text-gray-100 p-6">
       <div className="flex flex-col space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between bg-gray-800/50 p-4 rounded-lg border border-gray-700/50">
           <div className="flex flex-col items-start justify-center">
             <div className="relative">
@@ -81,17 +80,11 @@ export default function Dashboard({
             </div>
             <span className="text-sm text-gray-400">{user?.email}</span>
           </div>
-          <Button
-       
-            size="icon"
-            onClick={onLogout}
-            className="hover:bg-red-600/30"
-          >
+          <Button size="icon" onClick={onLogout} className="hover:bg-red-600/30">
             <IconLogout className="h-5 w-5" color="red" />
           </Button>
         </div>
 
-        {/* Quick Add Button */}
         <Button
           onClick={() => setShowAddDialog(true)}
           className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400"
@@ -99,37 +92,36 @@ export default function Dashboard({
           Add New Link
         </Button>
 
-        {/* Links Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {links.map((link) => (
             <div
               key={link.id}
-              className="group px-2  bg-gray-800/50 rounded-lg border border-gray-700/50 hover:bg-gray-800/70 transition-all duration-300"
+              className="group bg-gray-800/50 rounded-lg border border-gray-700/50 hover:bg-gray-800/70 transition-all duration-300 p-3"
             >
               {editingLinkId === link.id ? (
-                <div className="">
+                <div className="space-y-2">
                   <Input
                     value={editedTitle}
                     onChange={(e) => setEditedTitle(e.target.value)}
                     placeholder="Enter title"
-                    className="bg-gray-700/50"
+                    className="bg-gray-700/50 h-8 text-sm"
                   />
                   <Input
                     value={editedUrl}
                     onChange={(e) => setEditedUrl(e.target.value)}
                     placeholder="Enter URL"
-                    className="bg-gray-700/50"
+                    className="bg-gray-700/50 h-8 text-sm"
                   />
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex justify-end space-x-1">
                     <Button
-                      size="icon"
+                      size="sm"
                       variant="ghost"
                       onClick={() => handleSaveEditedLink(link.id)}
                     >
                       <IconCheck className="h-4 w-4 text-green-400" />
                     </Button>
                     <Button
-                      size="icon"
+                      size="sm"
                       variant="ghost"
                       onClick={() => setEditingLinkId(null)}
                     >
@@ -138,59 +130,66 @@ export default function Dashboard({
                   </div>
                 </div>
               ) : (
-                <>
-                  <div className="flex items-center justify-between mb-0">
-                    <h3 className="font-medium text-lg text-gray-100">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-row justify-between">
+                    <h3 className="font-medium text-sm text-gray-100 truncate">
                       {link.title}
                     </h3>
-                    <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleEditLink(link)}
+                    <div className="flex flex-row items-center justify-center  opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6"
+                      onClick={() => handleEditLink(link)}
+                    >
+                      <IconEdit className="h-3 w-3 text-blue-400" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6"
+                      onClick={() => handleCopyLink(link.url)}
+                    >
+                      <IconCopy className="h-3 w-3 text-green-400" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6"
+                      onClick={() => handleDeleteLink(link.id)}
+                    >
+                      <IconTrash className="h-3 w-3 text-red-400" />
+                    </Button>
+                  </div>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-gray-400 hover:text-blue-400 truncate flex-1"
                       >
-                        <IconEdit className="h-4 w-4 text-blue-400" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleCopyLink(link.url)}
-                      >
-                        <IconCopy className="h-4 w-4 text-green-400" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleDeleteLink(link.id)}
-                      >
-                        <IconTrash className="h-4 w-4 text-red-400" />
-                      </Button>
+                        {link.url}
+                      </a>
+                      <span className="text-xs text-gray-500 whitespace-nowrap">
+                        {new Date(link.timestamp).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-gray-400 hover:text-blue-400 break-all "
-                  >
-                    {link.url}
-                  </a>
-                  <p className="text-xs text-gray-500 mt-2">
-                    {new Date(link.timestamp).toLocaleString()}
-                  </p>
-                </>
+                  
+                </div>
               )}
             </div>
           ))}
           {links.length === 0 && (
-            <div className="col-span-full text-center p-8 bg-gray-800/50 rounded-lg border border-gray-700/50">
-              <p className="text-gray-400">No links saved yet. Add your first link!</p>
+            <div className="col-span-full text-center p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
+              <p className="text-gray-400 text-sm">No links saved yet. Add your first link!</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Add Link Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent className="bg-slate-800 backdrop-blur-xl py-2 rounded-xl border-gray-700">
           <DialogHeader>
@@ -210,7 +209,7 @@ export default function Dashboard({
               className="bg-gray-700/30"
             />
             <div className="flex justify-end space-x-2">
-              <Button className="color-white" onClick={() => setShowAddDialog(false)}>
+              <Button className="text-white" onClick={() => setShowAddDialog(false)}>
                 Cancel
               </Button>
               <Button onClick={handleAddNewLink}>Save Link</Button>
