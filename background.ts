@@ -1,3 +1,4 @@
+import { getSavedLinks, saveLinkToFirebase } from './firebase/linkService';
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "injectSaveButton") {
       // Inject the save button into the page

@@ -1,5 +1,5 @@
 // Check if the current page is ChatGPT or Claude
-if (window.location.href.includes("chatgpt.com") || window.location.href.includes("claude.ai")) {
+if (window.location.href.includes("https://chatgpt.com/") || window.location.href.includes("https://claude.ai/")) {
     // Add a button to save the current conversation link
     const saveButton = document.createElement("button");
     saveButton.innerText = "Save Link to Extension";
