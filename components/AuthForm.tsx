@@ -61,7 +61,7 @@ export default function AuthForm() {
       await signOut(auth)
       setVerificationSent(true)
       setShowToast(true)
-      // Hide toast after 5 seconds
+
       setTimeout(() => setShowToast(false), 5000)
     } catch (error) {
       alert(error.message)
