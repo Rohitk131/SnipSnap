@@ -5,7 +5,7 @@
   "description": "A smart clipboard for all your links, specially for your ai chats. ",
   "author": "rohitk131",
   "scripts": {
-    "dev": "plasmo dev",
+   "dev": "PLASMO_DISABLE_HMR=true plasmo dev",
     "build": "plasmo build",
     "package": "plasmo package"
   },
