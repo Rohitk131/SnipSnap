@@ -56,3 +56,32 @@
     @apply bg-background text-foreground; /* Apply background and text colors */
   }
 }
+
+.ai-assistant-button {
+  background-color: #4F46E5;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px;
+  transition: background-color 0.2s;
+}
+
+.ai-assistant-button:hover {
+  background-color: #4338CA;
+}
+
+.button-text {
+  line-height: 1;
+}
+
+.plasmo-csui-container {
+  position: relative;
+  z-index: 9999;
+}
