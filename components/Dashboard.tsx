@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Toast } from "./ui/use-toast";
+import { updateLinkInFirebase, deleteLinkFromFirebase } from "../firebase/linkService";
 
 export default function Dashboard({
   user,
@@ -16,15 +17,18 @@ export default function Dashboard({
   setLinkTitle,
   handleSaveLink,
 }) {
-  const [editingLinkId, setEditingLinkId] = useState(null);
+ const [editingLinkId, setEditingLinkId] = useState<string | null>(null);
   const [editedTitle, setEditedTitle] = useState("");
   const [editedUrl, setEditedUrl] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
 
   const handleEditLink = (link) => {
+    // Ensure we're not already editing
+    if (editingLinkId) return;
+    
     setEditingLinkId(link.id);
-    setEditedTitle(link.title);
-    setEditedUrl(link.url);
+    setEditedTitle(link.title || "");  // Add fallback empty string
+    setEditedUrl(link.url || "");      // Add fallback empty string
   };
 
   const handleSaveEditedLink = async (linkId) => {
@@ -33,23 +37,57 @@ export default function Dashboard({
         Toast({ title: "Error", description: "Title and URL are required", variant: "destructive" });
         return;
       }
-      const updatedLinks = links.map((link) =>
-        link.id === linkId ? { ...link, title: editedTitle, url: editedUrl } : link
+
+      // Find the specific link
+      const linkToUpdate = links.find(link => link.id === linkId);
+      if (!linkToUpdate) {
+        Toast({ title: "Error", description: "Link not found", variant: "destructive" });
+        return;
+      }
+
+      // Create updated link object
+      const updatedLink = {
+        ...linkToUpdate,
+        title: editedTitle.trim(),
+        url: editedUrl.trim(),
+        timestamp: Date.now() // Update timestamp
+      };
+
+      // Update in Firebase first
+      await updateLinkInFirebase(user.uid, linkId, updatedLink);
+
+      // Only update local state if Firebase update was successful
+      const updatedLinks = links.map(link => 
+        link.id === linkId ? updatedLink : link
       );
+      
       setLinks(updatedLinks);
       setEditingLinkId(null);
+      setEditedTitle("");
+      setEditedUrl("");
+      
       Toast({ title: "Success", description: "Link updated successfully" });
     } catch (error) {
+      console.error("Error updating link:", error);
       Toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
-  const handleDeleteLink = (linkId) => {
-    const updatedLinks = links.filter((link) => link.id !== linkId);
-    setLinks(updatedLinks);
-    Toast({ title: "Success", description: "Link deleted successfully" });
-  };
 
+  const handleDeleteLink = async (linkId) => {
+    try {
+      // Delete from Firebase
+      await deleteLinkFromFirebase(user.uid, linkId);
+
+      // Update local state
+      const updatedLinks = links.filter((link) => link.id !== linkId);
+      setLinks(updatedLinks);
+      Toast({ title: "Success", description: "Link deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting link:", error);
+      Toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
   const handleCopyLink = (url) => {
     navigator.clipboard.writeText(url);
     Toast({ title: "Success", description: "Link copied to clipboard" });
