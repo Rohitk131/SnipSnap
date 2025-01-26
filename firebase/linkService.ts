@@ -1,49 +1,30 @@
-// src/firebase/linkService.ts
 import { db } from "./firebaseClient";
-import { doc, setDoc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
-import { auth } from "./firebaseClient";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+
 export async function saveLinkToFirebase(
   uid: string,
   link: { title: string; url: string; timestamp: number }
 ): Promise<void> {
+  const userRef = doc(db, "users", uid);
+  
   try {
-    console.log("LinkService: Starting save operation", { 
-      uid,
-      link,
-      isAuthenticated: !!auth.currentUser 
-    });
-
-    const userRef = doc(db, "users", uid);
-    console.log("LinkService: Getting user document");
-    
     const userDoc = await getDoc(userRef);
-    console.log("LinkService: User document exists:", userDoc.exists());
-
-    if (userDoc.exists()) {
-      console.log("LinkService: Updating existing document");
-      await updateDoc(userRef, {
-        savedLinks: arrayUnion(link),
-      });
-    } else {
-      console.log("LinkService: Creating new document");
-      await setDoc(userRef, {
-        savedLinks: [link],
-      });
-    }
     
-    console.log("LinkService: Save operation completed successfully");
+    if (userDoc.exists()) {
+      const links = userDoc.data().links || [];
+      links.push(link);
+      await setDoc(userRef, { links }, { merge: true });
+    } else {
+      await setDoc(userRef, { links: [link] });
+    }
   } catch (error) {
-    console.error("LinkService: Error in saveLinkToFirebase:", error);
+    console.error("Error saving link:", error);
     throw error;
   }
 }
+
 export async function getSavedLinks(uid: string): Promise<any[]> {
   const userRef = doc(db, "users", uid);
   const userDoc = await getDoc(userRef);
-
-  if (userDoc.exists()) {
-    return userDoc.data()?.savedLinks || [];
-  } else {
-    return [];
-  }
+  return userDoc.exists() ? (userDoc.data().links || []) : [];
 }

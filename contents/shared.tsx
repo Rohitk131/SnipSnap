@@ -15,47 +15,36 @@ export const getStyle = () => {
 };
 const AIAssistantButton: FC = () => {
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial auth state
     chrome.storage.local.get(['authUser'], (result) => {
-      console.log("Content: Auth state from storage", result.authUser);
       setUser(result.authUser || null);
-      setIsLoading(false);
     });
 
-    // Listen for auth state changes
     const handleAuthChange = (changes, namespace) => {
       if (namespace === 'local' && changes.authUser) {
-        console.log("Content: Auth state changed", changes.authUser.newValue);
         setUser(changes.authUser.newValue);
       }
     };
     chrome.storage.onChanged.addListener(handleAuthChange);
 
-    return () => {
-      chrome.storage.onChanged.removeListener(handleAuthChange);
-    };
+    return () => chrome.storage.onChanged.removeListener(handleAuthChange);
   }, []);
 
   const handleClick = async () => {
     if (!user) {
-      alert("Please log in first");
+      alert("Please login first!");
       return;
     }
 
     try {
-      console.log("Content: Sending save link request");
       chrome.runtime.sendMessage({
         type: 'SAVE_LINK',
         payload: {
           title: document.title,
-          url: window.location.href,
-          timestamp: Date.now()
+          url: window.location.href
         }
       }, (response) => {
-        console.log("Content: Received response", response);
         if (response?.success) {
           alert("Link saved successfully!");
         } else {
@@ -63,24 +52,28 @@ const AIAssistantButton: FC = () => {
         }
       });
     } catch (error) {
-      console.error("Content: Error saving link", error);
+      console.error("Error:", error);
       alert("Failed to save link");
     }
   };
 
-  if (isLoading) return <div>Loading...</div>;
-
   return (
     <button 
-      className="ai-assistant-button" 
       onClick={handleClick}
-     
+      style={{
+        padding: '8px 16px',
+        backgroundColor: '#10B981',
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        margin: '8px'
+      }}
     >
-      Save this Chat
+      Save Chat
     </button>
   );
 };
-
 const ContentScript = () => {
   useEffect(() => {
     const injectButton = () => {
