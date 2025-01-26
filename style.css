@@ -58,8 +58,8 @@
 }
 
 .ai-assistant-button {
-  background-color: #4F46E5;
-  color: white;
+  background-color: #3aff6b;
+  color: rgb(0, 0, 0);
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
@@ -74,7 +74,7 @@
 }
 
 .ai-assistant-button:hover {
-  background-color: #4338CA;
+  background-color: #00a846;
 }
 
 .button-text {
