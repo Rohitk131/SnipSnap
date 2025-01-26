@@ -5,7 +5,7 @@ import {
   signOut
 } from "firebase/auth"
 import { Mail } from "lucide-react"
-import React, { useState } from "react"
+import React, { useState, type FormEvent } from "react"
 
 import { auth } from "~firebase/firebaseClient"
 import useFirebaseUser from "~firebase/useFirebaseUser"
@@ -19,58 +19,64 @@ export default function AuthForm() {
   const [password, setPassword] = useState("")
   const [verificationSent, setVerificationSent] = useState(false)
   const [showToast, setShowToast] = useState(false)
-  const { isLoading, onLogin } = useFirebaseUser()
+  const [error, setError] = useState("")  // Add error state
+  const { isLoading } = useFirebaseUser()
 
   const signIn = async (e) => {
     e.preventDefault()
-    if (!email || !password) return alert("Please enter email and password")
+    setError("")  // Clear any previous errors
+    
+    if (!email || !password) {
+      setError("Please enter email and password")
+      return
+    }
+    
     try {
+      console.log("Attempting sign in...")  // Debug log
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
         password
       )
+      console.log("Sign in successful", userCredential)  // Debug log
+      
       if (!userCredential.user.emailVerified) {
         await signOut(auth)
-        return alert("Please verify your email before signing in")
+        setError("Please verify your email before signing in")
+        return
       }
-      onLogin()
-    } catch (error) {
-      alert(error.message)
-    } finally {
+
+      // Store user data in chrome.storage
+      const userData = {
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+        emailVerified: userCredential.user.emailVerified
+      }
+      await chrome.storage.local.set({ authUser: userData })
+      
+      // Clear form
       setEmail("")
       setPassword("")
+      
+    } catch (error) {
+      console.error("Sign in error:", error)  // Debug log
+      setError(error.message)
     }
   }
 
-  const signUp = async (e) => {
-    e.preventDefault()
-    if (!email || !password || !confirmPassword) {
-      return alert("Please fill out all fields")
-    }
-    if (password !== confirmPassword) {
-      return alert("Passwords do not match")
-    }
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      )
-      await sendEmailVerification(userCredential.user)
-      await signOut(auth)
-      setVerificationSent(true)
-      setShowToast(true)
-
-      setTimeout(() => setShowToast(false), 5000)
-    } catch (error) {
-      alert(error.message)
-    }
+  function signUp(event: FormEvent<HTMLFormElement>): void {
+    throw new Error("Function not implemented.")
   }
 
   return (
     <div className="relative min-h-[400px] w-[400px] bg-gray-900 text-slate-100 flex items-center justify-center">
-   
+     {error && (  // Add error display
+        <div className="absolute top-4 left-0 right-0 mx-auto w-[90%] z-50">
+          <Alert className="bg-red-500/10 text-red-400 border-red-500/20">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
+      )}
       {showToast && (
         <div className="absolute top-4 left-0 right-0 mx-auto w-[90%] z-50 animate-fade-in">
           <Alert className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">

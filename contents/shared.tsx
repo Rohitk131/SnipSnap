@@ -13,40 +13,70 @@ export const getStyle = () => {
   style.textContent = cssText;
   return style;
 };
-
 const AIAssistantButton: FC = () => {
-  const { user, isLoading } = useFirebaseUser();
-  const [email, setEmail] = useState<string | null>(null);
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (isLoading) {
-      console.log("Loading user state...");
+    // Get initial auth state
+    chrome.storage.local.get(['authUser'], (result) => {
+      console.log("Content: Auth state from storage", result.authUser);
+      setUser(result.authUser || null);
+      setIsLoading(false);
+    });
+
+    // Listen for auth state changes
+    const handleAuthChange = (changes, namespace) => {
+      if (namespace === 'local' && changes.authUser) {
+        console.log("Content: Auth state changed", changes.authUser.newValue);
+        setUser(changes.authUser.newValue);
+      }
+    };
+    chrome.storage.onChanged.addListener(handleAuthChange);
+
+    return () => {
+      chrome.storage.onChanged.removeListener(handleAuthChange);
+    };
+  }, []);
+
+  const handleClick = async () => {
+    if (!user) {
+      alert("Please log in first");
       return;
     }
 
-    if (user) {
-      setEmail(user.email || null);
-      console.log("User email:", user.email);
-    } else {
-      setEmail(null);
-      console.log("No user found");
+    try {
+      console.log("Content: Sending save link request");
+      chrome.runtime.sendMessage({
+        type: 'SAVE_LINK',
+        payload: {
+          title: document.title,
+          url: window.location.href,
+          timestamp: Date.now()
+        }
+      }, (response) => {
+        console.log("Content: Received response", response);
+        if (response?.success) {
+          alert("Link saved successfully!");
+        } else {
+          alert("Failed to save link: " + (response?.error || "Unknown error"));
+        }
+      });
+    } catch (error) {
+      console.error("Content: Error saving link", error);
+      alert("Failed to save link");
     }
-  }, [user, isLoading]);
-
-  const currentURL = window.location.href;
-  const chatTitle = document.title || "Untitled Chat";
-
-  const handleClick = () => {
-    alert(currentURL + " " + chatTitle);
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>; // Show a loading state while waiting for user data
-  }
+  if (isLoading) return <div>Loading...</div>;
 
   return (
-    <button className="ai-assistant-button" onClick={handleClick}>
-      <span className="button-text">Save this Chat</span>
+    <button 
+      className="ai-assistant-button" 
+      onClick={handleClick}
+     
+    >
+      Save this Chat
     </button>
   );
 };

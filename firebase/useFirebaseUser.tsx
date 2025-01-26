@@ -1,57 +1,69 @@
-// src/firebase/useFirebaseUser.tsx
 import { type User, browserLocalPersistence, onAuthStateChanged, setPersistence } from "firebase/auth";
 import { useEffect, useState } from "react";
-import { sendToBackground } from "@plasmohq/messaging";
 import { auth } from "./firebaseClient";
 
 setPersistence(auth, browserLocalPersistence);
 
 export default function useFirebaseUser() {
-  const [isLoading, setIsLoading] = useState(true); // Set initial loading state to true
+  const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    // First, try to get the auth state from storage
+    chrome.storage.local.get(['authUser'], (result) => {
+      if (result.authUser) {
+        setUser(result.authUser);
+        setIsLoading(false);
+      }
+    });
+
+    // Listen for auth state changes
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setIsLoading(true);
+      
+      if (firebaseUser) {
+        // Get the user data we want to store
+        const userData = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          emailVerified: firebaseUser.emailVerified,
+        };
+
+        // Store in chrome.storage for content scripts
+        await chrome.storage.local.set({ authUser: userData });
+        setUser(firebaseUser);
+      } else {
+        // Clear the stored user data
+        await chrome.storage.local.remove(['authUser']);
+        setUser(null);
+      }
+      
+      setIsLoading(false);
+    });
+
+    // Also listen for auth state changes from other contexts
+    const messageListener = (message) => {
+      if (message.type === 'AUTH_STATE_CHANGED') {
+        setUser(message.user);
+      }
+    };
+    chrome.runtime.onMessage.addListener(messageListener);
+
+    return () => {
+      unsubscribe();
+      chrome.runtime.onMessage.removeListener(messageListener);
+    };
+  }, []);
 
   const onLogout = async () => {
     setIsLoading(true);
     if (user) {
       await auth.signOut();
-      await sendToBackground({
-        name: "removeAuth",
-        body: {},
-      });
+      await chrome.storage.local.remove(['authUser']);
+      chrome.runtime.sendMessage({ type: 'AUTH_STATE_CHANGED', user: null });
     }
     setIsLoading(false);
   };
-
-  const onLogin = async () => {
-    if (!user) return;
-
-    const uid = user.uid;
-    const token = await user.getIdToken(true);
-
-    await sendToBackground({
-      name: "saveAuth",
-      body: {
-        token,
-        uid,
-        refreshToken: user.refreshToken,
-      },
-    });
-  };
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setIsLoading(false); // Set loading to false once the user state is resolved
-    });
-
-    return () => unsubscribe(); // Cleanup subscription
-  }, []);
-
-  useEffect(() => {
-    if (user) {
-      onLogin();
-    }
-  }, [user]);
 
   return {
     isLoading,

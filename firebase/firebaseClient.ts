@@ -15,18 +15,20 @@ const clientCredentials = {
   measurementId: process.env.PLASMO_PUBLIC_FIREBASE_MEASUREMENT_ID
 }
  
-let firebase_app
- 
-// Check if firebase app is already initialized to avoid creating new app on hot-reloads
-if (!getApps().length) {
-  firebase_app = initializeApp(clientCredentials)
-} else {
-  firebase_app = getApps()[0]
+let app;
+let auth;
+let db;
+try {
+  app = initializeApp(clientCredentials);
+  auth = getAuth(app);
+  db = getFirestore(app);
+} catch (error) {
+  console.error("Firebase initialization error", error);
 }
- 
-export const storage = getStorage(firebase_app)
-export const auth = getAuth(firebase_app)
-export const db = getFirestore(firebase_app)
-export const googleAuth = new GoogleAuthProvider()
- 
-export default firebase_app
+auth.setPersistence('local');
+
+console.log("FirebaseClient: Initialized with config", { 
+  projectId: clientCredentials.projectId,
+  isAuthenticated: !!auth.currentUser 
+});
+export { auth, db };

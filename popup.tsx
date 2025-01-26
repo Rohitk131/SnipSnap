@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from "react";
 import AuthForm from "components/AuthForm";
 import Dashboard from "./components/Dashboard";
-import useFirebaseUser from "~firebase/useFirebaseUser";
+import useFirebaseUser from "./firebase/useFirebaseUser";
 import { getSavedLinks, saveLinkToFirebase } from './firebase/linkService';
 import "./style.css";
+import { auth } from "./firebase/firebaseClient";
 
 export default function Options() {
-  const { user, onLogout } = useFirebaseUser();
+  const { user, isLoading } = useFirebaseUser();
   const [links, setLinks] = useState([]);
   const [newLink, setNewLink] = useState("");
   const [linkTitle, setLinkTitle] = useState("");
 
   useEffect(() => {
+    console.log("Current user state:", user); // Debug log
+    
     if (!user?.uid) return;
 
     const fetchLinks = async () => {
@@ -50,6 +53,10 @@ export default function Options() {
     }
   };
 
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-[400px]">Loading...</div>;
+  }
+
   return (
     <div className="min-h-[400px] w-[400px] bg-white text-gray-900">
       <div className="flex flex-col items-center justify-center min-h-[400px]">
@@ -58,7 +65,14 @@ export default function Options() {
         ) : (
           <Dashboard
             user={user}
-            onLogout={onLogout}
+            onLogout={async () => {
+              try {
+                await auth.signOut();
+                await chrome.storage.local.remove(['authUser']);
+              } catch (error) {
+                console.error("Logout error:", error);
+              }
+            }}
             links={links}
             setLinks={setLinks}
             newLink={newLink}

@@ -1,32 +1,54 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
+import { saveLinkToFirebase } from "./firebase/linkService";
+import { auth } from "./firebase/firebaseClient";
+import { onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
 
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.FIREBASE_APP_ID
-};
+// Initialize auth state
+let currentUser = null;
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+onAuthStateChanged(auth, (user) => {
+  currentUser = user;
+  console.log("Background: Auth state changed", { 
+    isAuthenticated: !!user,
+    uid: user?.uid 
+  });
+});
 
-// Listen for messages from content scripts
+// Handle messages from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "SAVE_LINK") {
-    const linkDoc = doc(db, "links", new Date().toISOString());
-    setDoc(linkDoc, { url: message.url })
-      .then(() => {
-        sendResponse({ message: "Link saved successfully!" });
-      })
-      .catch((error) => {
-        console.error("Error saving link:", error);
-        sendResponse({ message: "Failed to save the link." });
-      });
-    return true; // Required to use sendResponse asynchronously
+  if (message.type === 'SAVE_LINK') {
+    console.log("Background: Received save link request", message.payload);
+    
+    (async () => {
+      try {
+        // Get auth state from storage
+        const result = await chrome.storage.local.get(['authUser']);
+        console.log("Background: Auth state from storage", result.authUser);
+
+        if (!result.authUser) {
+          throw new Error("No authenticated user found");
+        }
+
+        // Check Firebase auth state
+        console.log("Background: Current Firebase auth state", { 
+          currentUser,
+          isAuthenticated: !!auth.currentUser 
+        });
+
+        // Try to save the link
+        await saveLinkToFirebase(result.authUser.uid, {
+          title: message.payload.title,
+          url: message.payload.url,
+          timestamp: message.payload.timestamp
+        });
+
+        console.log("Background: Link saved successfully");
+        sendResponse({ success: true });
+      } catch (error) {
+        console.error("Background: Error saving link", error);
+        sendResponse({ success: false, error: error.message });
+      }
+    })();
+
+    return true;
   }
 });
