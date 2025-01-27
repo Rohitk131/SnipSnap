@@ -5,7 +5,7 @@
   "description": "A smart clipboard for all your links, specially for your ai chats. ",
   "author": "rohitk131",
   "scripts": {
-   "dev": "plasmo dev",
+    "dev": "plasmo dev",
     "build": "plasmo build",
     "package": "plasmo package"
   },
@@ -41,6 +41,26 @@
   "manifest": {
     "host_permissions": [
       "https://*/*"
+    ]
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "protobufjs",
+      "msgpackr-extract",
+      "@swc/core",
+      "lmdb",
+      "@parcel/watcher",
+      "esbuild",
+      "sharp"
+    ],
+    "onlyBuiltDependencies": [
+      "protobufjs",
+      "msgpackr-extract",
+      "@swc/core",
+      "lmdb",
+      "@parcel/watcher",
+      "esbuild",
+      "sharp"
     ]
   }
 }

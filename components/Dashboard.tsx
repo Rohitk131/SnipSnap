@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { IconLogout, IconEdit, IconCopy, IconTrash, IconCheck, IconX } from '@tabler/icons-react';
+import { IconLogout, IconEdit, IconCopy, IconTrash } from '@tabler/icons-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -17,55 +17,48 @@ export default function Dashboard({
   setLinkTitle,
   handleSaveLink,
 }) {
- const [editingLinkId, setEditingLinkId] = useState<string | null>(null);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingLink, setEditingLink] = useState(null);
   const [editedTitle, setEditedTitle] = useState("");
   const [editedUrl, setEditedUrl] = useState("");
-  const [showAddDialog, setShowAddDialog] = useState(false);
 
   const handleEditLink = (link) => {
-    // Ensure we're not already editing
-    if (editingLinkId) return;
-    
-    setEditingLinkId(link.id);
-    setEditedTitle(link.title || "");  // Add fallback empty string
-    setEditedUrl(link.url || "");      // Add fallback empty string
+    setEditingLink(link);
+    setEditedTitle(link.title || "");
+    setEditedUrl(link.url || "");
+    setShowEditDialog(true);
   };
 
-  const handleSaveEditedLink = async (linkId) => {
+  const handleSaveEditedLink = async () => {
     try {
       if (!editedTitle.trim() || !editedUrl.trim()) {
         Toast({ title: "Error", description: "Title and URL are required", variant: "destructive" });
         return;
       }
 
-      // Find the specific link
-      const linkToUpdate = links.find(link => link.id === linkId);
-      if (!linkToUpdate) {
-        Toast({ title: "Error", description: "Link not found", variant: "destructive" });
-        return;
-      }
-
       // Create updated link object
       const updatedLink = {
-        ...linkToUpdate,
+        ...editingLink,
         title: editedTitle.trim(),
         url: editedUrl.trim(),
-        timestamp: Date.now() // Update timestamp
+        timestamp: Date.now()
       };
 
       // Update in Firebase first
-      await updateLinkInFirebase(user.uid, linkId, updatedLink);
+      await updateLinkInFirebase(user.uid, editingLink.id, updatedLink);
 
-      // Only update local state if Firebase update was successful
-      const updatedLinks = links.map(link => 
-        link.id === linkId ? updatedLink : link
+      // Update local state
+      const updatedLinks = links.map(link =>
+        link.id === editingLink.id ? updatedLink : link
       );
-      
+
       setLinks(updatedLinks);
-      setEditingLinkId(null);
+      setShowEditDialog(false);
+      setEditingLink(null);
       setEditedTitle("");
       setEditedUrl("");
-      
+
       Toast({ title: "Success", description: "Link updated successfully" });
     } catch (error) {
       console.error("Error updating link:", error);
@@ -73,13 +66,9 @@ export default function Dashboard({
     }
   };
 
-
   const handleDeleteLink = async (linkId) => {
     try {
-      // Delete from Firebase
       await deleteLinkFromFirebase(user.uid, linkId);
-
-      // Update local state
       const updatedLinks = links.filter((link) => link.id !== linkId);
       setLinks(updatedLinks);
       Toast({ title: "Success", description: "Link deleted successfully" });
@@ -88,6 +77,7 @@ export default function Dashboard({
       Toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
+
   const handleCopyLink = (url) => {
     navigator.clipboard.writeText(url);
     Toast({ title: "Success", description: "Link copied to clipboard" });
@@ -136,88 +126,54 @@ export default function Dashboard({
               key={link.id}
               className="group bg-gray-800/50 rounded-lg border border-gray-700/50 hover:bg-gray-800/70 transition-all duration-300 p-3"
             >
-              {editingLinkId === link.id ? (
-                <div className="space-y-2">
-                  <Input
-                    value={editedTitle}
-                    onChange={(e) => setEditedTitle(e.target.value)}
-                    placeholder="Enter title"
-                    className="bg-gray-700/50 h-8 text-sm"
-                  />
-                  <Input
-                    value={editedUrl}
-                    onChange={(e) => setEditedUrl(e.target.value)}
-                    placeholder="Enter URL"
-                    className="bg-gray-700/50 h-8 text-sm"
-                  />
-                  <div className="flex justify-end space-x-1">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleSaveEditedLink(link.id)}
-                    >
-                      <IconCheck className="h-4 w-4 text-green-400" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setEditingLinkId(null)}
-                    >
-                      <IconX className="h-4 w-4 text-red-400" />
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-row justify-between">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-row justify-between">
                     <h3 className="font-medium text-sm text-gray-100 truncate">
                       {link.title}
                     </h3>
-                    <div className="flex flex-row items-center justify-center  opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 w-6"
-                      onClick={() => handleEditLink(link)}
-                    >
-                      <IconEdit className="h-3 w-3 text-blue-400" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 w-6"
-                      onClick={() => handleCopyLink(link.url)}
-                    >
-                      <IconCopy className="h-3 w-3 text-green-400" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 w-6"
-                      onClick={() => handleDeleteLink(link.id)}
-                    >
-                      <IconTrash className="h-3 w-3 text-red-400" />
-                    </Button>
-                  </div>
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <a
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-gray-400 hover:text-blue-400 truncate flex-1"
+                    <div className="flex flex-row items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6"
+                        onClick={() => handleEditLink(link)}
                       >
-                        {link.url}
-                      </a>
-                      <span className="text-xs text-gray-500 whitespace-nowrap">
-                        {new Date(link.timestamp).toLocaleDateString()}
-                      </span>
+                        <IconEdit className="h-3 w-3 text-blue-400" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6"
+                        onClick={() => handleCopyLink(link.url)}
+                      >
+                        <IconCopy className="h-3 w-3 text-green-400" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6"
+                        onClick={() => handleDeleteLink(link.id)}
+                      >
+                        <IconTrash className="h-3 w-3 text-red-400" />
+                      </Button>
                     </div>
                   </div>
-                  
+                  <div className="flex items-center gap-2 mt-1">
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-gray-400 hover:text-blue-400 truncate flex-1"
+                    >
+                      {link.url}
+                    </a>
+                    <span className="text-xs text-gray-500 whitespace-nowrap">
+                      {new Date(link.timestamp).toLocaleDateString()}
+                    </span>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           ))}
           {links.length === 0 && (
@@ -228,29 +184,101 @@ export default function Dashboard({
         </div>
       </div>
 
+      {/* Add Link Dialog */}
+      {/* Add Link Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="bg-slate-800 backdrop-blur-xl py-2 rounded-xl border-gray-700">
-          <DialogHeader>
-            <DialogTitle>Add New Link</DialogTitle>
+        <DialogContent className="max-w-md bg-slate-900/95 backdrop-blur-xl rounded-xl border border-slate-800 p-6 shadow-2xl">
+          <DialogHeader className="space-y-3 mb-6">
+            <DialogTitle className="text-2xl font-semibold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+              Add New Link
+            </DialogTitle>
+            <p className="text-slate-400 text-sm font-normal">
+              Add a new link to your collection with a title and URL
+            </p>
           </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              value={linkTitle}
-              onChange={(e) => setLinkTitle(e.target.value)}
-              placeholder="Enter title"
-              className="bg-gray-700/30"
-            />
-            <Input
-              value={newLink}
-              onChange={(e) => setNewLink(e.target.value)}
-              placeholder="Enter URL"
-              className="bg-gray-700/30"
-            />
-            <div className="flex justify-end space-x-2">
-              <Button className="text-white" onClick={() => setShowAddDialog(false)}>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300">Title</label>
+              <Input
+                value={linkTitle}
+                onChange={(e) => setLinkTitle(e.target.value)}
+                placeholder="Enter a memorable title"
+                className="bg-slate-800/50 border-slate-700 h-10 rounded-lg placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300">URL</label>
+              <Input
+                value={newLink}
+                onChange={(e) => setNewLink(e.target.value)}
+                placeholder="https://example.com"
+                className="bg-slate-800/50 border-slate-700 h-10 rounded-lg placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20"
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button
+                onClick={() => setShowAddDialog(false)}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
+              >
                 Cancel
               </Button>
-              <Button onClick={handleAddNewLink}>Save Link</Button>
+              <Button
+                onClick={handleAddNewLink}
+                className="bg-gradient-to-r from-blue-600 to-emerald-500 hover:from-blue-500 hover:to-emerald-400 text-white shadow-lg shadow-blue-500/20"
+              >
+                Save Link
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Link Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-md bg-slate-900/95 backdrop-blur-xl rounded-xl border border-slate-800 p-6 shadow-2xl">
+          <DialogHeader className="space-y-3 mb-6">
+            <DialogTitle className="text-2xl font-semibold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Edit Link
+            </DialogTitle>
+            <p className="text-slate-400 text-sm font-normal">
+              Update the details of your saved link
+            </p>
+          </DialogHeader>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300">Title</label>
+              <Input
+                value={editedTitle}
+                onChange={(e) => setEditedTitle(e.target.value)}
+                placeholder="Enter a memorable title"
+                className="bg-slate-800/50 border-slate-700 h-10 rounded-lg placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500/20"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300">URL</label>
+              <Input
+                value={editedUrl}
+                onChange={(e) => setEditedUrl(e.target.value)}
+                placeholder="https://example.com"
+                className="bg-slate-800/50 border-slate-700 h-10 rounded-lg placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500/20"
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button
+                onClick={() => {
+                  setShowEditDialog(false);
+                  setEditingLink(null);
+                }}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveEditedLink}
+                className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white shadow-lg shadow-purple-500/20"
+              >
+                Save Changes
+              </Button>
             </div>
           </div>
         </DialogContent>

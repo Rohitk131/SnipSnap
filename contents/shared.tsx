@@ -15,6 +15,7 @@ export const getStyle = () => {
 };
 const AIAssistantButton: FC = () => {
   const [user, setUser] = useState(null);
+  const [buttonState, setButtonState] = useState('idle'); // 'idle' | 'saving' | 'saved'
 
   useEffect(() => {
     chrome.storage.local.get(['authUser'], (result) => {
@@ -38,6 +39,7 @@ const AIAssistantButton: FC = () => {
     }
 
     try {
+      setButtonState('saving');
       chrome.runtime.sendMessage({
         type: 'SAVE_LINK',
         payload: {
@@ -46,31 +48,112 @@ const AIAssistantButton: FC = () => {
         }
       }, (response) => {
         if (response?.success) {
-          alert("Link saved successfully!");
+          setButtonState('saved');
+          setTimeout(() => setButtonState('idle'), 2000); // Reset after 2 seconds
         } else {
+          setButtonState('idle');
           alert("Failed to save link: " + (response?.error || "Unknown error"));
         }
       });
     } catch (error) {
       console.error("Error:", error);
+      setButtonState('idle');
       alert("Failed to save link");
     }
+  };
+
+  const getButtonText = () => {
+    switch (buttonState) {
+      case 'saving':
+        return 'Saving...';
+      case 'saved':
+        return 'Saved!';
+      default:
+        return 'Save Chat';
+    }
+  };
+
+  const getSaveIcon = () => {
+    if (buttonState === 'saved') {
+      return (
+        <svg 
+          style={{
+            width: '20px',
+            height: '20px'
+          }}
+          fill="none" 
+          viewBox="0 0 24 24" 
+          stroke="currentColor"
+        >
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+      );
+    }
+
+    return (
+      <svg 
+        style={{
+          width: '20px',
+          height: '20px',
+          animation: buttonState === 'saving' ? 'spin 1s linear infinite' : 'none'
+        }}
+        fill="none" 
+        viewBox="0 0 24 24" 
+        stroke="currentColor"
+      >
+        <path 
+          strokeLinecap="round" 
+          strokeLinejoin="round" 
+          strokeWidth={2} 
+          d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" 
+        />
+      </svg>
+    );
   };
 
   return (
     <button 
       onClick={handleClick}
       style={{
-        padding: '8px 16px',
-        backgroundColor: '#10B981',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '8px',
+        padding: '10px 16px',
+        background: buttonState === 'saved' 
+          ? 'linear-gradient(to right, #059669, #10b981)'
+          : 'linear-gradient(to right, #10b981, #34d399)',
         color: 'white',
         border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        margin: '8px'
+        borderRadius: '8px',
+        fontSize: '14px',
+        fontWeight: '500',
+        cursor: buttonState === 'saving' ? 'wait' : 'pointer',
+        transition: 'all 0.3s ease',
+        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)',
+        margin: '8px',
+        opacity: buttonState === 'saving' ? '0.8' : '1',
+        position: 'relative',
+        overflow: 'hidden'
       }}
+      onMouseEnter={(e) => {
+        if (buttonState !== 'saving') {
+          e.currentTarget.style.transform = 'translateY(-1px)';
+          e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.25)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.15)';
+      }}
+      disabled={buttonState === 'saving'}
     >
-      Save Chat
+      {getSaveIcon()}
+      {getButtonText()}
     </button>
   );
 };

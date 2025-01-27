@@ -13,7 +13,7 @@ export default function Options() {
   const [linkTitle, setLinkTitle] = useState("");
 
   useEffect(() => {
-    console.log("Current user state:", user); // Debug log
+    console.log("Current user state:", user); 
     
     if (!user?.uid) return;
 

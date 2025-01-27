@@ -11,7 +11,8 @@ export async function saveLinkToFirebase(
     const userDoc = await getDoc(userRef);
     const linkWithId = {
       ...link,
-      id: Date.now().toString() // Generate unique ID
+    
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     };
     
     if (userDoc.exists()) {
@@ -27,7 +28,6 @@ export async function saveLinkToFirebase(
     throw error;
   }
 }
-
 export async function updateLinkInFirebase(
   uid: string,
   linkId: string,
@@ -40,9 +40,13 @@ export async function updateLinkInFirebase(
     if (!userDoc.exists()) throw new Error("User document not found");
 
     const links = userDoc.data().links || [];
-    const updatedLinks = links.map(link => 
-      link.id === linkId ? { ...updatedLink, id: linkId } : link
-    );
+    
+    const linkIndex = links.findIndex(link => link.id === linkId);
+    
+    if (linkIndex === -1) throw new Error("Link not found");
+    
+    const updatedLinks = [...links];
+    updatedLinks[linkIndex] = { ...updatedLink, id: linkId };
 
     await updateDoc(userRef, { links: updatedLinks });
   } catch (error) {
