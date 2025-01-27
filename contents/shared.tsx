@@ -5,7 +5,7 @@ import { useEffect, type FC, useState } from "react";
 import useFirebaseUser from "../firebase/useFirebaseUser";
 
 export const config: PlasmoCSConfig = {
-  matches: ["https://chatgpt.com/*", "https://claude.ai/*"],
+  matches: ["https://chatgpt.com/*", "https://claude.ai/*", "https://chat.deepseek.com/*", "https://www.perplexity.ai/*"],
 };
 
 export const getStyle = () => {
@@ -125,18 +125,18 @@ const AIAssistantButton: FC = () => {
         gap: '8px',
         padding: '10px 16px',
         background: buttonState === 'saved' 
-          ? 'linear-gradient(to right, #059669, #10b981)'
-          : 'linear-gradient(to right, #10b981, #34d399)',
+          ? 'linear-gradient(to right, #047857, #059669)' 
+          : 'linear-gradient(to right, #059669, #10b981)',
         color: 'white',
         border: 'none',
         borderRadius: '8px',
         fontSize: '14px',
-        fontWeight: '500',
+        fontWeight: '600',
         cursor: buttonState === 'saving' ? 'wait' : 'pointer',
         transition: 'all 0.3s ease',
-        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)',
+        
         margin: '8px',
-        opacity: buttonState === 'saving' ? '0.8' : '1',
+        opacity: buttonState === 'saving' ? '1' : '1',
         position: 'relative',
         overflow: 'hidden'
       }}
@@ -178,10 +178,26 @@ const ContentScript = () => {
           container.className = "plasmo-csui-container";
           claudeTarget.appendChild(container);
         }
+      } else if (currentURL.includes("chat.deepseek.com")) {
+        // Claude AI injection
+        const claudeTarget = document.querySelector("header");
+        if (claudeTarget && !document.querySelector(".plasmo-csui-container")) {
+          const container = document.createElement("div");
+          container.className = "plasmo-csui-container";
+          claudeTarget.appendChild(container);
+        }
+      }else if (currentURL.includes("perplexity.ai")) {
+        // Claude AI injection
+        const claudeTarget = document.querySelector("header");
+        if (claudeTarget && !document.querySelector(".plasmo-csui-container")) {
+          const container = document.createElement("div");
+          container.className = "plasmo-csui-container";
+          claudeTarget.appendChild(container);
+        }
       }
     };
 
-    // Initial injection
+    // Initial injection 
     injectButton();
 
     // Watch for dynamic content changes
