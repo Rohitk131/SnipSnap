@@ -144,7 +144,7 @@ export default function Dashboard({
 
         <Button
           onClick={() => setShowAddDialog(true)}
-          className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400"
+          className="w-full bg-gradient-to-r from-green-600 via-green-500 to-green-600 hover:from-green-700 hover:to-green-600"
         >
           Add New Link
         </Button>
