@@ -23,6 +23,35 @@ export default function Dashboard({
   const [editedTitle, setEditedTitle] = useState("");
   const [editedUrl, setEditedUrl] = useState("");
 
+  const getAIBadge = (url: string) => {
+    if (url.includes("chatgpt.com")) {
+      return (
+        <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-green-500/20 text-green-500">
+          ChatGPT
+        </span>
+      );
+    } else if (url.includes("claude.ai")) {
+      return (
+        <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-500/20 text-purple-500">
+          Claude
+        </span>
+      );
+    } else if (url.includes("chat.deepseek.com")) {
+      return (
+        <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-500/20 text-blue-500">
+          DeepSeek
+        </span>
+      );
+    } else if (url.includes("perplexity.ai")) {
+      return (
+        <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-orange-500/20 text-orange-500">
+          Perplexity
+        </span>
+      );
+    }
+    return null;
+  };
+  
   const handleEditLink = (link) => {
     setEditingLink(link);
     setEditedTitle(link.title || "");
@@ -132,6 +161,7 @@ export default function Dashboard({
                     <h3 className="font-medium text-sm text-gray-100 truncate">
                       {link.title}
                     </h3>
+                    {getAIBadge(link.url)}
                     <div className="flex flex-row items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button
                         size="sm"
@@ -183,48 +213,43 @@ export default function Dashboard({
           )}
         </div>
       </div>
-
-      {/* Add Link Dialog */}
-      {/* Add Link Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-md bg-slate-900/95 backdrop-blur-xl rounded-xl border border-slate-800 p-6 shadow-2xl">
-          <DialogHeader className="space-y-3 mb-6">
-            <DialogTitle className="text-2xl font-semibold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+        <DialogContent className="max-w-md bg-black/20 backdrop-blur-sm rounded-lg border border-gray-800 p-6 shadow-xl w-80">
+          <DialogHeader className="mb-3">
+            <DialogTitle className="text-xl font-medium text-gray-200">
               Add New Link
             </DialogTitle>
-            <p className="text-slate-400 text-sm font-normal">
-              Add a new link to your collection with a title and URL
-            </p>
+            
           </DialogHeader>
-          <div className="space-y-5">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">Title</label>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm text-gray-300 mb-1">Title</label>
               <Input
                 value={linkTitle}
                 onChange={(e) => setLinkTitle(e.target.value)}
                 placeholder="Enter a memorable title"
-                className="bg-slate-800/50 border-slate-700 h-10 rounded-lg placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20"
+                className="w-full h-10 bg-gray-800/50 border border-gray-700 rounded-lg px-3 text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-gray-600"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">URL</label>
+            <div>
+              <label className="block text-sm text-gray-300 mb-1">URL</label>
               <Input
                 value={newLink}
                 onChange={(e) => setNewLink(e.target.value)}
                 placeholder="https://example.com"
-                className="bg-slate-800/50 border-slate-700 h-10 rounded-lg placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20"
+                className="w-full h-10 bg-gray-800/50 border border-gray-700 rounded-lg px-3 text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-gray-600"
               />
             </div>
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="flex justify-end gap-3 pt-4">
               <Button
                 onClick={() => setShowAddDialog(false)}
-                className="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
+                className="px-4 py-2 text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 rounded-lg"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleAddNewLink}
-                className="bg-gradient-to-r from-blue-600 to-emerald-500 hover:from-blue-500 hover:to-emerald-400 text-white shadow-lg shadow-blue-500/20"
+                className="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg shadow"
               >
                 Save Link
               </Button>
@@ -235,47 +260,45 @@ export default function Dashboard({
 
       {/* Edit Link Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-md bg-slate-900/95 backdrop-blur-xl rounded-xl border border-slate-800 p-6 shadow-2xl">
-          <DialogHeader className="space-y-3 mb-6">
-            <DialogTitle className="text-2xl font-semibold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+        <DialogContent className="max-w-md bg-black/20 backdrop-blur-sm rounded-lg border border-gray-800 p-6 shadow-xl w-80">
+          <DialogHeader className="mb-3">
+            <DialogTitle className="text-xl font-medium text-gray-200">
               Edit Link
             </DialogTitle>
-            <p className="text-slate-400 text-sm font-normal">
-              Update the details of your saved link
-            </p>
+           
           </DialogHeader>
-          <div className="space-y-5">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">Title</label>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm text-gray-300 mb-1">Title</label>
               <Input
                 value={editedTitle}
                 onChange={(e) => setEditedTitle(e.target.value)}
                 placeholder="Enter a memorable title"
-                className="bg-slate-800/50 border-slate-700 h-10 rounded-lg placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500/20"
+                className="w-full h-10 bg-gray-800/50 border border-gray-700 rounded-lg px-3 text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-gray-600"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">URL</label>
+            <div>
+              <label className="block text-sm text-gray-300 mb-1">URL</label>
               <Input
                 value={editedUrl}
                 onChange={(e) => setEditedUrl(e.target.value)}
                 placeholder="https://example.com"
-                className="bg-slate-800/50 border-slate-700 h-10 rounded-lg placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500/20"
+                className="w-full h-10 bg-gray-800/50 border border-gray-700 rounded-lg px-3 text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-gray-600"
               />
             </div>
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="flex justify-end gap-3 pt-4">
               <Button
                 onClick={() => {
                   setShowEditDialog(false);
                   setEditingLink(null);
                 }}
-                className="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
+                className="px-4 py-2 text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 rounded-lg"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSaveEditedLink}
-                className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white shadow-lg shadow-purple-500/20"
+                className="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg shadow"
               >
                 Save Changes
               </Button>
@@ -283,6 +306,7 @@ export default function Dashboard({
           </div>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }
