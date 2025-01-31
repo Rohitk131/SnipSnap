@@ -306,7 +306,9 @@ export default function Dashboard({
           </div>
         </DialogContent>
       </Dialog>
-
+      <footer className="fixed bottom-0 w-full bg-gray-900 text-white text-center py-0 shadow-md">
+    Made by <a href="https://rohitk.me/" target="_blank" className="text-blue-400 hover:underline">Rohit Kumar</a>
+</footer>
     </div>
   );
 }
