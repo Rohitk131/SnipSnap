@@ -51,7 +51,7 @@ export default function Dashboard({
     }
     return null;
   };
-  
+
   const handleEditLink = (link) => {
     setEditingLink(link);
     setEditedTitle(link.title || "");
@@ -219,7 +219,7 @@ export default function Dashboard({
             <DialogTitle className="text-xl font-medium text-gray-200">
               Add New Link
             </DialogTitle>
-            
+
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -265,7 +265,7 @@ export default function Dashboard({
             <DialogTitle className="text-xl font-medium text-gray-200">
               Edit Link
             </DialogTitle>
-           
+
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -307,8 +307,8 @@ export default function Dashboard({
         </DialogContent>
       </Dialog>
       <footer className="fixed bottom-0 w-full bg-gray-900 text-white text-center py-0 shadow-md">
-    Made by <a href="https://rohitk.me/" target="_blank" className="text-blue-400 hover:underline">Rohit Kumar</a>
-</footer>
+        Made by <a href="https://rohitk.me/" target="_blank" className="text-blue-400 hover:underline">Rohit Kumar</a>
+      </footer>
     </div>
   );
 }
