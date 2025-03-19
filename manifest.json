@@ -1,0 +1,13 @@
+{
+  // ...existing code...
+  "web_accessible_resources": [
+    {
+      "resources": [
+        // ...existing resources...
+        "static/vendor/google-api.js"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+  // ...existing code...
+}
